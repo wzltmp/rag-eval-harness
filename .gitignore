@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.DS_Store
+
+# Corpus is gitignored to keep the repo light + copyright-clean.
+# Run scripts/fetch_pg_essays.py to regenerate.
+data/pdfs/
+
+# Eval set IS tracked; eval results are not (regenerated locally).
+data/eval_results.json
