@@ -8,12 +8,22 @@ from __future__ import annotations
 import streamlit as st
 from dotenv import load_dotenv
 
-from src.query import ask
-
 load_dotenv()
+
+from src.query import _get_reranker, ask
 
 st.set_page_config(page_title="Chat with your docs", page_icon=":books:")
 st.title("Chat with your docs")
+st.caption("RAG over 28 Paul Graham essays. pgvector + cross-encoder rerank + Claude Haiku.")
+
+
+@st.cache_resource
+def _warm_reranker():
+    return _get_reranker()
+
+
+with st.spinner("Loading reranker model (first boot only)..."):
+    _warm_reranker()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
