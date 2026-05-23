@@ -2,9 +2,11 @@
 
 A retrieval-augmented chat app over a corpus of Paul Graham essays, with a hand-curated 30-question eval set and an A/B comparison of vector-only retrieval vs. vector + cross-encoder rerank.
 
-> **Live demo:** _coming soon (Streamlit Cloud + Supabase pgvector)_
+> **Live demo:** https://rag-eval-harness.streamlit.app
 >
 > **Source:** this repo. Built as project 1 of a 4-project AI engineer portfolio.
+>
+> Stack in production: Streamlit Cloud (chat UI) + Supabase (managed Postgres with pgvector) + OpenAI embeddings + cross-encoder rerank + Anthropic Claude.
 
 ## What this project demonstrates
 
