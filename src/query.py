@@ -59,8 +59,10 @@ def rerank(question: str, chunks: list[Chunk]) -> list[Chunk]:
     model = _get_reranker()
     pairs = [(question, c.text) for c in chunks]
     # sentence-transformers' predict() overload set covers text/image/audio/video
-    # multimodal inputs; cast() avoids depending on exactly how that resolves.
-    scores = cast(list[float], model.predict(pairs))
+    # multimodal inputs and doesn't match a plain list[tuple[str, str]] cleanly;
+    # cast the argument (not just the return) so this holds regardless of which
+    # overload the installed stub version resolves to.
+    scores = cast(list[float], model.predict(cast(Any, pairs)))
     for c, s in zip(chunks, scores, strict=True):
         c.score = float(s)
     chunks.sort(key=lambda c: c.score, reverse=True)
