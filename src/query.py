@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from anthropic import Anthropic
 from anthropic.types import TextBlock
@@ -58,7 +58,9 @@ def _get_reranker() -> CrossEncoder:
 def rerank(question: str, chunks: list[Chunk]) -> list[Chunk]:
     model = _get_reranker()
     pairs = [(question, c.text) for c in chunks]
-    scores = model.predict(pairs)
+    # sentence-transformers' predict() overload set covers text/image/audio/video
+    # multimodal inputs; cast() avoids depending on exactly how that resolves.
+    scores = cast(list[float], model.predict(pairs))
     for c, s in zip(chunks, scores, strict=True):
         c.score = float(s)
     chunks.sort(key=lambda c: c.score, reverse=True)
