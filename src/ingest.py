@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -56,7 +57,8 @@ def chunk_text(text: str) -> list[str]:
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP
     )
-    return splitter.split_text(text)
+    chunks: list[str] = splitter.split_text(text)
+    return chunks
 
 
 def embed(texts: list[str], client: OpenAI) -> list[list[float]]:
@@ -64,7 +66,7 @@ def embed(texts: list[str], client: OpenAI) -> list[list[float]]:
     return [d.embedding for d in resp.data]
 
 
-def iter_docs(folder: Path):
+def iter_docs(folder: Path) -> Iterator[tuple[Path, list[tuple[int, str]]]]:
     for path in sorted(folder.glob("**/*")):
         if path.suffix.lower() == ".pdf":
             yield path, read_pdf(path)
@@ -92,7 +94,7 @@ def ingest_folder(folder: Path, *, reset: bool = False) -> None:
                     continue
                 vectors = embed(chunks, client)
                 with conn.cursor() as cur:
-                    for chunk, vec in zip(chunks, vectors):
+                    for chunk, vec in zip(chunks, vectors, strict=True):
                         cur.execute(
                             "INSERT INTO chunks (source, page, text, embedding) VALUES (%s, %s, %s, %s)",
                             (path.name, page_num, chunk, vec),

@@ -9,8 +9,10 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from anthropic import Anthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.query import ask
@@ -35,10 +37,13 @@ def judge(question: str, expected: str, actual: str) -> bool:
         max_tokens=4,
         messages=[{"role": "user", "content": prompt}],
     )
-    return msg.content[0].text.strip().upper().startswith("YES")
+    for block in msg.content:
+        if isinstance(block, TextBlock):
+            return str(block.text).strip().upper().startswith("YES")
+    raise RuntimeError(f"no text block in judge response (stop_reason={msg.stop_reason!r})")
 
 
-def run(rerank: bool, top_k_retrieve: int = 20) -> dict:
+def run(rerank: bool, top_k_retrieve: int = 20) -> dict[str, Any]:
     path = Path("data/eval_set.jsonl")
     items = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     correct = 0

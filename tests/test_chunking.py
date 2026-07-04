@@ -1,6 +1,8 @@
 """Tests for the chunker in src.ingest."""
 from __future__ import annotations
 
+from itertools import pairwise
+
 from src.ingest import CHUNK_OVERLAP, CHUNK_SIZE, chunk_text
 
 
@@ -38,7 +40,7 @@ def test_consecutive_chunks_overlap():
         return  # only assertable when we actually got multiple chunks
     # Check that at least one adjacent pair shares a non-trivial substring (overlap).
     found = False
-    for a, b in zip(chunks, chunks[1:]):
+    for a, b in pairwise(chunks):
         tail = a[-min(len(a), 40):]
         if tail.strip() and tail.strip() in b:
             found = True

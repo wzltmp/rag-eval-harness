@@ -8,12 +8,14 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass
+from typing import Any
 
 from anthropic import Anthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 from openai import OpenAI
 from pgvector.psycopg import register_vector
-from psycopg import connect
+from psycopg import Connection, connect
 from sentence_transformers import CrossEncoder
 
 load_dotenv()
@@ -33,7 +35,7 @@ class Chunk:
     score: float = 0.0
 
 
-def retrieve(question: str, conn, top_k: int = TOP_K_RETRIEVE) -> list[Chunk]:
+def retrieve(question: str, conn: Connection[Any], top_k: int = TOP_K_RETRIEVE) -> list[Chunk]:
     client = OpenAI()
     qvec = client.embeddings.create(model=EMBED_MODEL, input=[question]).data[0].embedding
     rows = conn.execute(
@@ -57,7 +59,7 @@ def rerank(question: str, chunks: list[Chunk]) -> list[Chunk]:
     model = _get_reranker()
     pairs = [(question, c.text) for c in chunks]
     scores = model.predict(pairs)
-    for c, s in zip(chunks, scores):
+    for c, s in zip(chunks, scores, strict=True):
         c.score = float(s)
     chunks.sort(key=lambda c: c.score, reverse=True)
     return chunks[:TOP_K_RERANK]
@@ -78,17 +80,17 @@ def answer(question: str, chunks: list[Chunk]) -> str:
         max_tokens=512,
         messages=[{"role": "user", "content": prompt}],
     )
-    return msg.content[0].text
+    for block in msg.content:
+        if isinstance(block, TextBlock):
+            return str(block.text)
+    raise RuntimeError(f"no text block in response (stop_reason={msg.stop_reason!r})")
 
 
 def ask(question: str, rerank_on: bool = True, top_k_retrieve: int = TOP_K_RETRIEVE) -> str:
     with connect(os.environ["DATABASE_URL"]) as conn:
         register_vector(conn)
         chunks = retrieve(question, conn, top_k=top_k_retrieve)
-    if rerank_on:
-        chunks = rerank(question, chunks)
-    else:
-        chunks = chunks[:TOP_K_RERANK]
+    chunks = rerank(question, chunks) if rerank_on else chunks[:TOP_K_RERANK]
     return answer(question, chunks)
 
 

@@ -15,7 +15,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from src.query import _get_reranker, ask
+from sentence_transformers import CrossEncoder  # noqa: E402 — same reason
+
+from src.query import _get_reranker, ask  # noqa: E402 — must follow sys.path fixup + load_dotenv()
 
 st.set_page_config(page_title="Chat with your docs", page_icon=":books:")
 st.title("Chat with your docs")
@@ -23,7 +25,7 @@ st.caption("RAG over 28 Paul Graham essays. pgvector + cross-encoder rerank + Cl
 
 
 @st.cache_resource
-def _warm_reranker():
+def _warm_reranker() -> CrossEncoder:
     return _get_reranker()
 
 

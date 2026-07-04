@@ -1,5 +1,10 @@
 # Chat-with-Your-Docs RAG
 
+[![CI](https://github.com/wzltmp/rag-eval-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/wzltmp/rag-eval-harness/actions/workflows/ci.yml)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
+[![ruff](https://img.shields.io/badge/lint-ruff-261230.svg)](https://github.com/astral-sh/ruff)
+[![mypy: strict](https://img.shields.io/badge/mypy-strict-2a6db2.svg)](http://mypy-lang.org/)
+
 A retrieval-augmented chat app over a corpus of Paul Graham essays, with a hand-curated 30-question eval set and an A/B comparison of vector-only retrieval vs. vector + cross-encoder rerank.
 
 > **Live demo:** https://rag-eval-harness.streamlit.app
